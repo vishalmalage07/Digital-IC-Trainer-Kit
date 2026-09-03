@@ -1,0 +1,1123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Digital IC Trainer kit By Vishal Malage</title><!--It's Officially Design & Developed  By Vishal Malage-->
+<link rel="shortcut icon" type="image/icon" href="image/logo.png"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:transparent;font-family:'Courier New',monospace;overflow:hidden;height:100vh;display:flex;flex-direction:column;}
+
+/* ── toolbar ──  Designed By Vishal Malage */
+#toolbar{background:#0f0f1a;border-bottom:1px solid #1f9d55;padding:6px 12px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;z-index:100;min-height:48px;}
+#toolbar select,#toolbar input{background:#1a1a2e;color:#0ca5d7;border:1px solid #0ca5d744;border-radius:4px;padding:4px 8px;font-family:'Courier New',monospace;font-size:12px;}
+.tbtn{background:#0ca5d7;color:#0f0f1a;border:none;border-radius:4px;padding:5px 12px;font-family:'Courier New',monospace;font-size:12px;font-weight:bold;cursor:pointer;white-space:nowrap;}
+.tbtn:hover{background:#0df;}
+.tbtn.red{background:#f64e4d;}
+.tbtn.red:hover{background:#ff6666;}
+.tbtn.green{background:#2ecc71;}
+.tbtn.green:hover{background:#58d68d;}
+.tbtn.yellow{background:#f1c40f;color:#111;}
+.tbtn.yellow:hover{background:#f9e34d;}
+.tbtn.active{background:#ff9f1c;color:#111;box-shadow:0 0 0 2px #fff3 inset,0 0 10px #ff9f1c77;}
+#undoBtn:hover:not([disabled]){background:#a29bfe !important;}
+#statusBar{margin-left:auto;color:#0ca5d7;font-size:11px;background:#0002;border:1px solid #0ca5d722;border-radius:4px;padding:4px 10px;max-width:320px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+#zoomLabel{color:#aaa;font-size:11px;min-width:50px;text-align:center;}
+#pwrBtn{width:36px;height:36px;border-radius:50%;background:#222;border:2px solid #555;color:#666;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;}
+#pwrBtn.on{background:#f64e4d;border-color:#f64e4d;color:#fff;box-shadow:0 0 8px #f64e4d88;}
+
+/* ── canvas area ── */
+#canvasWrap{flex:1;position:relative;overflow:hidden;cursor:default;background:transparent;}
+#wireCanvas{position:absolute;top:0;left:0;pointer-events:none;z-index:10;}
+#boardWorld{position:absolute;top:0;left:0;transform-origin:0 0;}
+
+/* ── board sections ── Designed By Vishal Malage */
+#board{background:#1aac48;border-radius:0;padding:10px;min-width:1400px;position:relative;}
+.sec-label{color:#f3eded;font-size:13px;font-weight:bold;text-align:center;padding:3px;letter-spacing:2px;text-shadow:0 1px 2px #0004;}
+.board-strip{display:flex;align-items:center;gap:2px;padding:6px 10px;background:#157f46;border-radius:0;overflow:visible;}
+
+/* ── pin column ── */
+.pcol{display:flex;flex-direction:column;align-items:center;gap:2px;min-width:36px;}
+.pin-lbl{font-size:9px;color:#111;text-align:center;font-weight:bold;}
+.led{width:13px;height:13px;border-radius:50%;background:#1a1a1a;border:2px solid #0004;transition:background .1s;}
+.led.hi{background:#ff2222;border-color:#f008;box-shadow:0 0 5px #f008;}
+.out-col{min-width:56px;gap:4px;}
+.out-bulb-wrap{display:flex;flex-direction:column;align-items:center;gap:0;filter:drop-shadow(0 2px 2px #0005);}
+.out-bulb{
+  width:30px;height:30px;border-radius:50% 50% 46% 46%;
+  background:radial-gradient(circle at 35% 30%, #fff9d6 0%, #998d65 20%, #4f5764 58%, #27303d 100%);
+  border:2px solid #d5dbe544;
+  position:relative;
+  box-shadow:inset 0 -6px 10px #0005,inset 0 6px 12px #ffffff18;
+  transition:all .18s ease;
+}
+.out-bulb::before{
+  content:'';
+  position:absolute;
+  width:9px;height:9px;border-radius:50%;
+  left:6px;top:5px;
+  background:#ffffff55;
+  filter:blur(.4px);
+}
+.out-bulb::after{
+  content:'';
+  position:absolute;
+  left:50%;bottom:3px;transform:translateX(-50%);
+  width:10px;height:8px;
+  border-radius:4px;
+  background:linear-gradient(180deg,#ffe9a4,#7f6a39);
+  opacity:.35;
+}
+.out-bulb.live{
+  background:radial-gradient(circle at 35% 30%, #fbfbfb 0%, #bac1cc 22%, #58606d 60%, #2b3240 100%);
+  border-color:#eef3ff88;
+}
+.out-bulb.on{
+  background:radial-gradient(circle at 38% 28%, #fffef2 0%, #fff6a0 18%, #ffd33d 38%, #ff9f1c 66%, #7f3d00 100%);
+  border-color:#fff2b0;
+  box-shadow:0 0 12px #ffd75b,0 0 26px #ffb000cc,0 0 48px #ff7b00aa,inset 0 -6px 10px #9f4d0018,inset 0 6px 12px #ffffff66;
+}
+.bulb-base{
+  width:18px;height:9px;border-radius:0 0 6px 6px;
+  background:linear-gradient(180deg,#d9dde2,#6e7682);
+  border:1px solid #4e5561;
+  margin-top:-2px;
+  position:relative;
+}
+.bulb-base::before{
+  content:'';
+  position:absolute;
+  left:2px;right:2px;top:2px;height:1px;
+  background:#49505c;
+  box-shadow:0 2px 0 #49505c,0 4px 0 #49505c;
+}
+.out-note{
+  font-size:9px;
+  font-weight:bold;
+  color:#26313b;
+  letter-spacing:.8px;
+  min-height:12px;
+}
+.out-note.live{color:#083548;}
+.out-note.on{color:#6a2b00;text-shadow:0 0 10px #fff0a0;}
+.pin-stub{width:8px;height:8px;border-radius:50%;background:#9f9f9f;cursor:crosshair;transition:all .1s;position:relative;z-index:30;}
+.pin-stub:hover,.pin-stub.hover{background:#ffe033;transform:scale(1.5);}
+.pin-stub.connected{background:#ffd700;}
+.pin-stub.dragging-src{background:#00e5ff;transform:scale(1.6);}
+.toggle-sw{width:14px;height:26px;background:#222;border-radius:7px;border:none;cursor:pointer;position:relative;transition:background .1s;}
+.toggle-sw::after{content:'';position:absolute;width:12px;height:12px;background:#ccc;border-radius:50%;left:1px;bottom:2px;transition:bottom .15s;}
+.toggle-sw.hi{background:#cc2222;}
+.toggle-sw.hi::after{bottom:12px;background:#fff;}
+
+/* ── clock generator ── */
+#clkSection{display:flex;align-items:center;gap:6px;padding:4px 10px;background:#106b3a;border-top:1px solid #ffffff33;flex-wrap:wrap;}
+.clk-col{display:flex;flex-direction:column;align-items:center;gap:2px;min-width:44px;}
+.clk-lbl{font-size:9px;color:#2ecc71;font-weight:bold;letter-spacing:.5px;}
+.clk-indicator{width:13px;height:13px;border-radius:50%;background:#1a1a1a;border:2px solid #0004;transition:background .05s;}
+.clk-indicator.hi{background:#2ecc71;border-color:#2ecc7188;box-shadow:0 0 5px #2ecc7188;}
+.clk-freq-wrap{display:flex;flex-direction:column;align-items:center;gap:2px;}
+#clkFreqLabel{color:#2ecc71;font-size:10px;min-width:50px;text-align:center;}
+#clkFreqSlider{width:90px;accent-color:#2ecc71;}
+#clkRunBtn{background:#2ecc71;color:#0f0f1a;border:none;border-radius:4px;padding:4px 10px;font-family:'Courier New',monospace;font-size:12px;font-weight:bold;cursor:pointer;white-space:nowrap;}
+#clkRunBtn:hover{background:#58d68d;}
+#clkRunBtn.running{background:#e74c3c;color:#fff;}
+#clkRunBtn.running:hover{background:#ff6b6b;}
+.clk-section-title{color:#2ecc71;font-size:10px;font-weight:bold;letter-spacing:1px;writing-mode:vertical-rl;transform:rotate(180deg);padding:2px;}
+.clk-pulse-btn{
+  width:38px;height:38px;border-radius:50%;
+  background:#1a3a2a;border:2px solid #2ecc71;
+  color:#2ecc71;font-size:16px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:all .05s;user-select:none;
+  box-shadow:0 0 0 0 #2ecc7100;
+}
+.clk-pulse-btn:active,.clk-pulse-btn.pressed{
+  background:#2ecc71;color:#0f0f1a;
+  box-shadow:0 0 10px #2ecc7188;
+  transform:scale(0.93);
+}
+
+/* ── IC area ── Designed By vishal Malage*/
+#icArea{display:flex;gap:16px;padding:10px 12px;flex-wrap:wrap;align-items:flex-start;min-height:220px;}
+
+/* ── IC chip ── Designed by Vishal Malage*/
+.ic-wrap{position:relative;display:inline-flex;flex-direction:column;align-items:center;}
+.ic-del{position:absolute;top:-9px;right:-9px;background:#f64e4d;color:#f3d3d3;border:none;border-radius:50%;width:18px;height:18px;font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:40;opacity:0;transition:opacity .1s;}
+.ic-wrap:hover .ic-del{opacity:1;}
+.ic-notch{width:18px;height:8px;background:#393939;border-radius:0 0 9px 9px;}
+.ic-chip{display:flex;align-items:stretch;}
+.ic-sidebar{width:9px;background:#292929;border-radius:4px;display:flex;flex-direction:column;justify-content:space-evenly;align-items:center;}
+.ic-sidebar .h{width:6px;height:6px;background:#555;border-radius:50%;}
+.ic-body{background:#111;min-width:70px;display:flex;align-items:center;justify-content:center;padding:4px 2px;}
+.ic-lbl{color:#0ca5d7;font-size:9px;font-weight:bold;writing-mode:vertical-rl;transform:rotate(180deg);letter-spacing:2px;padding:2px;text-shadow:0 0 6px #0ca5d788;}
+.ic-col-l,.ic-col-r{display:flex;flex-direction:column;}
+.ic-pin-row{display:flex;align-items:center;height:18px;}
+.ic-pin-row.r{flex-direction:row-reverse;}
+.pn{font-size:8px;color:#666;width:12px;text-align:right;line-height:1;}
+.pn.r{text-align:left;}
+.ic-ps{margin:0 2px;}
+
+/* ── help panel ── */
+#helpPanel{position:absolute;right:12px;bottom:12px;background:#0f0f1aee;border:1px solid #1f9d5544;border-radius:8px;padding:12px 16px;color:#aaa;font-size:11px;line-height:1.8;z-index:50;max-width:220px;}
+#helpPanel b{color:#0ca5d7;}
+
+/* ── context menu ── */
+#ctxMenu{position:absolute;background:#0f0f1a;border:1px solid #0ca5d7;border-radius:6px;padding:4px 0;z-index:200;display:none;min-width:140px;}
+#ctxMenu .ci{padding:6px 14px;color:#ccc;font-size:12px;cursor:pointer;}
+#ctxMenu .ci:hover{background:#0ca5d722;color:#fff;}
+#ctxMenu .ci.danger{color:#f64e4d;}
+#ctxMenu .ci.danger:hover{background:#f64e4d22;}
+</style>
+</head>
+<body>
+
+<div id="toolbar">
+  <select id="icSel">
+    <option value="7408">7408 — AND (quad 2-in)</option>
+    <option value="7486">7486 — XOR (quad 2-in)</option>
+    <option value="7432">7432 — OR (quad 2-in)</option>
+    <option value="7483">7483 — 4-bit Adder (16-pin)</option>
+    <option value="7400">7400 — NAND (quad 2-in)</option>
+    <option value="7404">7404 — NOT (hex inverter)</option>
+    <option value="7402">7402 — NOR (quad 2-in)</option>
+    <option value="7410">7410 — NAND (triple 3-in)</option>
+    <option value="7411">7411 — AND (triple 3-in)</option>
+    <option value="7474">7474 — D Flip-Flop (dual)</option>
+    <option value="7473">7473 — JK Flip-Flop (dual)</option>
+  </select>
+  <button class="tbtn" onclick="addIC()">+ Add IC</button>
+  <button class="tbtn red" onclick="clearWires()">Clear Wires</button>
+  <button class="tbtn red" onclick="clearAll()">Clear All</button>
+  <button class="tbtn" id="undoBtn" onclick="undoAction()" title="Undo last action (Ctrl+Z)" style="background:#6c5ce7;">&#8630; Undo</button>
+  <button class="tbtn yellow" id="trimBtn" onclick="toggleTrimMode()">Trim Wire</button>
+  <button class="tbtn yellow" onclick="zoomIn()">+ Zoom</button>
+  <button class="tbtn yellow" onclick="zoomOut()">− Zoom</button>
+  <button class="tbtn yellow" onclick="resetZoom()">Reset View</button>
+  <span id="zoomLabel">100%</span>
+  <span id="statusBar">Drag from any pin to connect wires</span>
+  <button id="pwrBtn" onclick="togglePwr()" title="Power On/Off">&#9210;</button>
+</div>
+
+<div id="canvasWrap">
+  <canvas id="wireCanvas"></canvas>
+  <div id="boardWorld">
+    <div id="board">
+      <div class="sec-label">&#9650; OUTPUT SECTION</div>
+      <div class="board-strip" id="outRow"></div>
+      <div id="icArea"></div>
+      <div class="board-strip" id="inRow"></div>
+      <div class="sec-label">&#9660; INPUT SECTION</div>
+      <!-- Clock / Pulse generator section  Designed By Vishal Malage -->
+      <div id="clkSection">
+        <span class="clk-section-title">CLK</span>
+        <div id="clkPins"></div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px;margin-left:10px;">
+          <span style="color:#2ecc71;font-size:9px;font-weight:bold;">AUTO CLOCK</span>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <span id="clkFreqLabel" style="color:#2ecc71;font-size:10px;min-width:50px;">1 Hz</span>
+            <input type="range" id="clkFreqSlider" min="0" max="11" step="1" value="0" style="width:80px;accent-color:#2ecc71;">
+          </div>
+          <button id="clkRunBtn" onclick="toggleClock()">&#9654; Start Auto</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="helpPanel">
+
+  <p>
+    <h2>  &copy;Copyright Vishal Malage. Design and Developed by <a href="https://github.com/vishalmalage07">Vishal Malage</a></h2>
+  </p>
+  <b>Controls</b><br>
+  Drag pin &#8594; connect wire<br>
+  Right-click wire &#8594; delete<br>
+  Mouse wheel &#8594; zoom<br>
+  Middle-drag &#8594; pan<br>
+  Toggle buttons &#8594; set inputs<br>
+  <b>Power</b> button &#8594; run circuit<br><br>
+    
+</div>
+
+<div id="ctxMenu">
+  <div class="ci danger" id="ctxDelWire">Delete this wire</div>
+  <div class="ci" id="ctxCancel">Cancel</div>
+</div>
+
+<script>
+const IC_DEFS={
+  '7408':{name:'7408 AND',pins:14,vcc:14,gnd:7,
+    gates:[{t:'AND',i:[1,2],o:3},{t:'AND',i:[4,5],o:6},{t:'AND',i:[10,9],o:8},{t:'AND',i:[13,12],o:11}]},
+  '7486':{name:'7486 XOR',pins:14,vcc:14,gnd:7,
+    gates:[{t:'XOR',i:[1,2],o:3},{t:'XOR',i:[4,5],o:6},{t:'XOR',i:[10,9],o:8},{t:'XOR',i:[13,12],o:11}]},
+  '7432':{name:'7432 OR',pins:14,vcc:14,gnd:7,
+    gates:[{t:'OR',i:[1,2],o:3},{t:'OR',i:[4,5],o:6},{t:'OR',i:[10,9],o:8},{t:'OR',i:[13,12],o:11}]},
+  '7483':{name:'7483 ADDER',pins:16,vcc:5,gnd:12,
+    gates:[{t:'ADDER',i:[10,8,3,1,11,7,4,16,13],o:[9,6,2,15,14]}]},
+  '7400':{name:'7400 NAND',pins:14,vcc:14,gnd:7,
+    gates:[{t:'NAND',i:[1,2],o:3},{t:'NAND',i:[4,5],o:6},{t:'NAND',i:[10,9],o:8},{t:'NAND',i:[13,12],o:11}]},
+  '7404':{name:'7404 NOT',pins:14,vcc:14,gnd:7,
+    gates:[{t:'NOT',i:[1],o:2},{t:'NOT',i:[3],o:4},{t:'NOT',i:[5],o:6},{t:'NOT',i:[9],o:8},{t:'NOT',i:[11],o:10},{t:'NOT',i:[13],o:12}]},
+  '7402':{name:'7402 NOR',pins:14,vcc:14,gnd:7,
+    gates:[{t:'NOR',i:[2,3],o:1},{t:'NOR',i:[5,6],o:4},{t:'NOR',i:[8,9],o:10},{t:'NOR',i:[11,12],o:13}]},
+  '7410':{name:'7410 NAND3',pins:14,vcc:14,gnd:7,
+    gates:[{t:'NAND',i:[1,2,13],o:12},{t:'NAND',i:[3,4,5],o:6},{t:'NAND',i:[9,10,11],o:8}]},
+  '7411':{name:'7411 AND3',pins:14,vcc:14,gnd:7,
+    gates:[{t:'AND',i:[1,2,13],o:12},{t:'AND',i:[3,4,5],o:6},{t:'AND',i:[9,10,11],o:8}]},
+  // 7474: Dual D Flip-Flop (positive edge-triggered)
+  // FF1: /CLR=1,D=2,CLK=3,/PRE=4,Q=5,/Q=6  FF2: /PRE=10,/CLR=13,D=12,CLK=11,Q=9,/Q=8
+  '7474':{name:'7474 D-FF',pins:14,vcc:14,gnd:7,
+    gates:[
+      {t:'DFF',clk:3,d:2,pre_n:4,clr_n:1,q:5,qn:6},
+      {t:'DFF',clk:11,d:12,pre_n:10,clr_n:13,q:9,qn:8}
+    ]},
+  // 7473: Dual JK Flip-Flop (negative edge-triggered)
+  // FF1: CLK=1,/CLR=2,K=3,J=14,Q=12,/Q=13  FF2: CLK=5,/CLR=6,K=10,J=7,Q=9,/Q=8  VCC=4,GND=11
+  '7473':{name:'7473 JK-FF',pins:14,vcc:4,gnd:11,
+    gates:[
+      {t:'JKFF',clk:1,clr_n:2,j:14,k:3,q:12,qn:13},
+      {t:'JKFF',clk:5,clr_n:6,j:7,k:10,q:9,qn:8}
+    ]},
+};
+
+const N_IN=16, N_OUT=16;
+let powered=false, ics=[], icCnt=0, wires=[], dragWire=null;
+let inStates=Array(N_IN).fill(0), outStates=Array(N_OUT).fill(0);
+let zoom=1, panX=20, panY=20, isPanning=false, panStart={x:0,y:0};
+const WIRE_COLORS=['#ff0','#0ff','#f0f','#0f8','#f80','#8ff','#f66','#6f6','#66f','#ff8','#8ff','#f8f'];
+let wColorIdx=0;
+let ctxWireIdx=-1;
+let trimMode=false;
+let undoStack=[];
+// Flip-flop state: keyed by "icId_gateIdx" → {q, prevClk}
+const ffState={};
+
+// Clock generator
+const N_CLK=4;
+let clkStates=Array(N_CLK).fill(0);
+let clkRunning=false;
+let clkInterval=null;
+const CLK_FREQS=[1,2,4,5,8,10,16,20,25,32,50,100];
+
+const canvasWrap=document.getElementById('canvasWrap');
+const canvas=document.getElementById('wireCanvas');
+const ctx=canvas.getContext('2d');
+const boardWorld=document.getElementById('boardWorld');
+
+function applyTransform(){
+  boardWorld.style.transform=`translate(${panX}px,${panY}px) scale(${zoom})`;
+  document.getElementById('zoomLabel').textContent=Math.round(zoom*100)+'%';
+  drawWires();
+}
+
+function zoomIn(){zoom=Math.min(3,zoom+0.15);applyTransform();}
+function zoomOut(){zoom=Math.max(0.25,zoom-0.15);applyTransform();}
+function resetZoom(){zoom=1;panX=20;panY=20;applyTransform();}
+
+canvasWrap.addEventListener('wheel',e=>{
+  e.preventDefault();
+  const delta=e.deltaY>0?-0.1:0.1;
+  const rect=canvasWrap.getBoundingClientRect();
+  const mx=e.clientX-rect.left, my=e.clientY-rect.top;
+  const newZoom=Math.max(0.25,Math.min(3,zoom+delta));
+  panX=mx-(mx-panX)*(newZoom/zoom);
+  panY=my-(my-panY)*(newZoom/zoom);
+  zoom=newZoom;
+  applyTransform();
+},{passive:false});
+
+canvasWrap.addEventListener('mousedown',e=>{
+  if(e.button===1||(e.button===0&&e.altKey)){isPanning=true;panStart={x:e.clientX-panX,y:e.clientY-panY};canvasWrap.style.cursor='grabbing';}
+});
+window.addEventListener('mousemove',e=>{
+  if(isPanning){panX=e.clientX-panStart.x;panY=e.clientY-panStart.y;applyTransform();}
+  if(dragWire){
+    const r=canvas.getBoundingClientRect();
+    dragWire.mx=e.clientX-r.left;
+    dragWire.my=e.clientY-r.top;
+    drawWires();
+  }
+});
+window.addEventListener('mouseup',e=>{
+  if(e.button===1||(e.button===0&&e.altKey)){isPanning=false;canvasWrap.style.cursor='default';}
+});
+
+function resizeCanvas(){
+  const r=canvasWrap.getBoundingClientRect();
+  canvas.width=r.width; canvas.height=r.height;
+}
+
+function boardToCanvas(el){
+  if(!el) return null;
+  const wr=canvas.getBoundingClientRect();
+  const er=el.getBoundingClientRect();
+  return {x:er.left-wr.left+er.width/2, y:er.top-wr.top+er.height/2};
+}
+
+function drawWires(){
+  resizeCanvas();
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  wires.forEach((w,idx)=>{
+    const aEl=getPinEl(w.from), bEl=getPinEl(w.to);
+    if(!aEl||!bEl) return;
+    const a=boardToCanvas(aEl), b=boardToCanvas(bEl);
+    if(!a||!b) return;
+    ctx.strokeStyle=w.color;
+    ctx.lineWidth=trimMode?3.5:2.5;
+    ctx.lineCap='round';
+    const mx=(a.x+b.x)/2;
+    ctx.beginPath();
+    ctx.moveTo(a.x,a.y);
+    ctx.bezierCurveTo(mx,a.y,mx,b.y,b.x,b.y);
+    ctx.stroke();
+    ctx.fillStyle=w.color;
+    [a,b].forEach(p=>{ctx.beginPath();ctx.arc(p.x,p.y,4,0,Math.PI*2);ctx.fill();});
+    w._path={a,b,mx};
+  });
+  if(dragWire){
+    const aEl=getPinEl(dragWire.from);
+    if(aEl){
+      const a=boardToCanvas(aEl);
+      ctx.strokeStyle='#fff';
+      ctx.lineWidth=1.5;
+      ctx.setLineDash([5,4]);
+      ctx.beginPath();
+      ctx.moveTo(a.x,a.y);
+      ctx.lineTo(dragWire.mx,dragWire.my);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+  }
+}
+
+function hitWire(mx,my){
+  for(let idx=wires.length-1;idx>=0;idx--){
+    const w=wires[idx];
+    if(!w._path) continue;
+    const {a,b,mx:cmx}=w._path;
+    for(let t=0;t<=1;t+=0.05){
+      const bx=Math.pow(1-t,3)*a.x+3*Math.pow(1-t,2)*t*cmx+3*(1-t)*t*t*cmx+t*t*t*b.x;
+      const by=Math.pow(1-t,3)*a.y+3*Math.pow(1-t,2)*t*a.y+3*(1-t)*t*t*b.y+t*t*t*b.y;
+      if(Math.abs(bx-mx)<8&&Math.abs(by-my)<8) return idx;
+    }
+  }
+  return -1;
+}
+
+function updateTrimUi(){
+  const btn=document.getElementById('trimBtn');
+  if(btn) btn.classList.toggle('active',trimMode);
+  canvasWrap.style.cursor=trimMode?'crosshair':'default';
+}
+
+function toggleTrimMode(){
+  trimMode=!trimMode;
+  document.getElementById('ctxMenu').style.display='none';
+  if(trimMode){
+    document.getElementById('statusBar').textContent='Trim mode ON - click a wire to cut it, then press Trim Wire again to exit';
+  }else{
+    document.getElementById('statusBar').textContent='Trim mode OFF - drag from any pin to connect wires';
+  }
+  updateTrimUi();
+  drawWires();
+}
+
+function getPinEl(id){return document.querySelector(`[data-pid="${CSS.escape(id)}"]`);}
+
+function pinId(type,idx,p){
+  if(type==='in') return `IN_${idx}`;
+  if(type==='out') return `OUT_${idx}`;
+  if(type==='ic') return `IC_${idx}_${p}`;
+  return type;
+}
+
+function getIcPinInfo(id){
+  if(!id.startsWith('IC_')) return null;
+  const parts=id.split('_');
+  const ic=ics.find(x=>x.id===parseInt(parts[1],10));
+  if(!ic) return null;
+  return {ic,pin:parseInt(parts[2],10)};
+}
+
+function getIcPinRole(ic,pin){
+  if(pin===ic.def.vcc||pin===ic.def.gnd) return 'power';
+  let isInput=false, isOutput=false;
+  ic.def.gates.forEach(g=>{
+    if(g.t==='DFF'){
+      [g.d,g.clk,g.pre_n,g.clr_n].forEach(p=>{if(p===pin) isInput=true;});
+      [g.q,g.qn].forEach(p=>{if(p===pin) isOutput=true;});
+    } else if(g.t==='JKFF'){
+      [g.j,g.k,g.clk,g.clr_n].forEach(p=>{if(p===pin) isInput=true;});
+      [g.q,g.qn].forEach(p=>{if(p===pin) isOutput=true;});
+    } else {
+      if(g.i) g.i.forEach(p=>{if(p===pin) isInput=true;});
+      if(g.o!=null) (Array.isArray(g.o)?g.o:[g.o]).forEach(p=>{if(p===pin) isOutput=true;});
+    }
+  });
+  if(isOutput && !isInput) return 'output';
+  if(isInput && !isOutput) return 'input';
+  if(isInput && isOutput) return 'io';
+  return 'nc';
+}
+
+function readFixedNode(id){
+  if(!powered) return null;
+  if(id==='VCC'||id==='HIGH') return 1;
+  if(id==='GND'||id==='LOW') return 0;
+  if(id.startsWith('IN_')) return inStates[parseInt(id.split('_')[1],10)]||0;
+  if(id.startsWith('CLK_')) return clkStates[parseInt(id.split('_')[1],10)]||0;
+  return null;
+}
+
+function buildNetMap(){
+  const graph=new Map();
+  function ensure(id){
+    if(!graph.has(id)) graph.set(id,new Set());
+    return graph.get(id);
+  }
+  wires.forEach(w=>{
+    ensure(w.from).add(w.to);
+    ensure(w.to).add(w.from);
+  });
+  const nodeToComp=new Map();
+  const comps=[];
+  graph.forEach((_,start)=>{
+    if(nodeToComp.has(start)) return;
+    const stack=[start];
+    const nodes=[];
+    const cid=comps.length;
+    nodeToComp.set(start,cid);
+    while(stack.length){
+      const cur=stack.pop();
+      nodes.push(cur);
+      graph.get(cur).forEach(next=>{
+        if(nodeToComp.has(next)) return;
+        nodeToComp.set(next,cid);
+        stack.push(next);
+      });
+    }
+    comps.push(nodes);
+  });
+  return {nodeToComp,comps};
+}
+
+function simulate(){
+  outStates=Array(N_OUT).fill(0);
+  if(!powered){ ics.forEach(ic=>{ic.ps={};}); return; }
+
+  const nets=buildNetMap();
+
+  // Initialize ic.ps with correct defaults (active-low pins = 1)
+  ics.forEach(ic=>{
+    ic.ps={};
+    for(let p=1;p<=ic.def.pins;p++) ic.ps[p]=0;
+    ic.def.gates.forEach(g=>{
+      if(g.t==='DFF')  { ic.ps[g.pre_n]=1; ic.ps[g.clr_n]=1; }
+      if(g.t==='JKFF') { ic.ps[g.clr_n]=1; }
+    });
+  });
+
+  // Snapshot prevClk for ALL flip-flops BEFORE anything changes
+  const prevClkSnap={};
+  ics.forEach(ic=>{
+    ic.def.gates.forEach((g,gi)=>{
+      if(g.t==='DFF'||g.t==='JKFF'){
+        const key=`${ic.id}_${gi}`;
+        if(!ffState[key]) ffState[key]={q:0, prevClk: g.t==='JKFF'?1:0};
+        prevClkSnap[key]=ffState[key].prevClk;
+      }
+    });
+  });
+
+  // Helper: resolve a node's fixed driver value
+  function fixedVal(id){
+    if(id==='VCC'||id==='HIGH') return 1;
+    if(id==='GND'||id==='LOW')  return 0;
+    if(id.startsWith('IN_'))  return inStates[parseInt(id.split('_')[1],10)]||0;
+    if(id.startsWith('CLK_')) return clkStates[parseInt(id.split('_')[1],10)]||0;
+    return null;
+  }
+
+  // Build net value map from fixed drivers + driven values
+  function buildNetVals(driven){
+    const m=new Map();
+    nets.comps.forEach((nodes,cid)=>{
+      let hi=false,lo=false;
+      nodes.forEach(id=>{
+        const v=fixedVal(id); if(v===1) hi=true; else if(v===0) lo=true;
+        if(driven&&driven.has(id)){ const dv=driven.get(id); if(dv) hi=true; else lo=true; }
+      });
+      if(hi||lo) m.set(cid, hi?1:0);
+    });
+    return m;
+  }
+
+  // Apply net map → populate ic.ps and outStates
+  function applyNets(m){
+    // Reset to defaults first
+    ics.forEach(ic=>{
+      for(let p=1;p<=ic.def.pins;p++) ic.ps[p]=0;
+      ic.def.gates.forEach(g=>{
+        if(g.t==='DFF')  { ic.ps[g.pre_n]=1; ic.ps[g.clr_n]=1; }
+        if(g.t==='JKFF') { ic.ps[g.clr_n]=1; }
+      });
+    });
+    outStates.fill(0);
+    m.forEach((val,cid)=>{
+      nets.comps[cid].forEach(id=>{
+        if(id.startsWith('OUT_')){ outStates[parseInt(id.split('_')[1],10)]=val; return; }
+        const info=getIcPinInfo(id); if(!info) return;
+        const role=getIcPinRole(info.ic,info.pin);
+        if(role!=='power') info.ic.ps[info.pin]=val;
+      });
+    });
+  }
+
+  // Driven outputs from gates/FFs: nodeId → 0|1
+  const driven=new Map();
+
+  // Seed FF outputs from current stored state Designed By Vishal Malage
+  ics.forEach(ic=>{
+    ic.def.gates.forEach((g,gi)=>{
+      const st=ffState[`${ic.id}_${gi}`];
+      if(st){
+        driven.set(pinId('ic',ic.id,g.q),  st.q);
+        driven.set(pinId('ic',ic.id,g.qn), st.q?0:1);
+      }
+    });
+  });
+
+  // Combinational settle loop
+  for(let it=0;it<16;it++){
+    const m=buildNetVals(driven);
+    applyNets(m);
+
+    const newDriven=new Map(driven); // carry FF outputs forward
+    let changed=false;
+
+    ics.forEach(ic=>{
+      ic.def.gates.forEach(g=>{
+        if(g.t==='DFF'||g.t==='JKFF'||g.t==='ADDER') return;
+        if(!g.i) return;
+        const ins=g.i.map(p=>ic.ps[p]||0);
+        let o=0;
+        if(g.t==='AND')  o=ins.every(v=>v)?1:0;
+        else if(g.t==='OR')  o=ins.some(v=>v)?1:0;
+        else if(g.t==='NAND') o=ins.every(v=>v)?0:1;
+        else if(g.t==='NOR')  o=ins.some(v=>v)?0:1;
+        else if(g.t==='XOR')  o=ins.reduce((a,b)=>a^b,0);
+        else if(g.t==='NOT')  o=ins[0]?0:1;
+        const pid=pinId('ic',ic.id,g.o);
+        if(newDriven.get(pid)!==o){ newDriven.set(pid,o); changed=true; }
+      });
+      // ADDER
+      ic.def.gates.forEach(g=>{
+        if(g.t!=='ADDER') return;
+        const A=(ic.ps[10]||0)+((ic.ps[8]||0)<<1)+((ic.ps[3]||0)<<2)+((ic.ps[1]||0)<<3);
+        const B=(ic.ps[11]||0)+((ic.ps[7]||0)<<1)+((ic.ps[4]||0)<<2)+((ic.ps[16]||0)<<3);
+        const s=A+B+(ic.ps[13]||0);
+        [9,6,2,15,14].forEach((pin,idx)=>{
+          const o=[(s&1),(s>>1)&1,(s>>2)&1,(s>>3)&1,(s>>4)&1][idx];
+          const pid=pinId('ic',ic.id,pin);
+          if(newDriven.get(pid)!==o){ newDriven.set(pid,o); changed=true; }
+        });
+      });
+    });
+
+    // Update driven map
+    newDriven.forEach((v,k)=>driven.set(k,v));
+    if(!changed) break;
+  }
+
+  // Final apply with settled combinational + current FF state
+  const finalM=buildNetVals(driven);
+  applyNets(finalM);
+
+  // NOW update FF state exactly once using snapshotted prevClk
+  ics.forEach(ic=>{
+    ic.def.gates.forEach((g,gi)=>{
+      const key=`${ic.id}_${gi}`;
+      const st=ffState[key]; if(!st) return;
+      const prevClk=prevClkSnap[key];
+      if(g.t==='DFF'){
+        const clk=ic.ps[g.clk]||0;
+        const pre_n=ic.ps[g.pre_n]; // 1 if unconnected (defaulted above)
+        const clr_n=ic.ps[g.clr_n];
+        if     (clr_n===0)               st.q=0;           // async clear
+        else if(pre_n===0)               st.q=1;           // async preset
+        else if(clk===1 && prevClk===0)  st.q=ic.ps[g.d]||0; // ↑ edge
+        st.prevClk=clk;
+      } else if(g.t==='JKFF'){
+        const clk=ic.ps[g.clk]||0;
+        const clr_n=ic.ps[g.clr_n];
+        const J=ic.ps[g.j]||0, K=ic.ps[g.k]||0;
+        if(clr_n===0)                    st.q=0;           // async clear
+        else if(clk===0 && prevClk===1){ // ↓ edge
+          if(J&&K) st.q=st.q?0:1;
+          else if(J) st.q=1;
+          else if(K) st.q=0;
+        }
+        st.prevClk=clk;
+      }
+      // Update driven map with new Q value
+      driven.set(pinId('ic',ic.id,g.q),  st.q);
+      driven.set(pinId('ic',ic.id,g.qn), st.q?0:1);
+    });
+  });
+
+  // Final final pass — propagate updated FF outputs into outStates DEsigned By Vishal Malage
+  const ff2=buildNetVals(driven);
+  applyNets(ff2);
+}
+
+function markConnected(){
+  document.querySelectorAll('.pin-stub').forEach(el=>el.classList.remove('connected'));
+  wires.forEach(w=>{
+    const a=getPinEl(w.from),b=getPinEl(w.to);
+    if(a) a.classList.add('connected');
+    if(b) b.classList.add('connected');
+  });
+}
+
+function isPinConnected(pid){
+  return wires.some(w=>w.from===pid||w.to===pid);
+}
+
+function renderLEDs(){
+  for(let i=0;i<N_OUT;i++){
+    const bulb=document.getElementById(`obulb${i}`);
+    const note=document.getElementById(`onote${i}`);
+    const connected=isPinConnected(pinId('out',i,0));
+    const high=Boolean(outStates[i]&&powered);
+    if(bulb){
+      bulb.className='out-bulb';
+      if(powered&&connected) bulb.classList.add('live');
+      if(high) bulb.classList.add('on');
+    }
+    if(note){
+      note.className='out-note';
+      if(!powered) note.textContent='OFF';
+      else if(!connected) note.textContent='OPEN';
+      else if(high){
+        note.textContent='HIGH';
+        note.classList.add('live','on');
+      }else{
+        note.textContent='LOW';
+        note.classList.add('live');
+      }
+    }
+  }
+  for(let i=0;i<N_IN;i++){
+    const el=document.getElementById(`iled${i}`);if(el)el.className='led'+(inStates[i]&&powered?' hi':'');
+    const tg=document.getElementById(`itog${i}`);if(tg)tg.className='toggle-sw'+(inStates[i]?' hi':'');
+  }
+  ics.forEach(ic=>{
+    for(let p=1;p<=ic.def.pins;p++){
+      const el=getPinEl(pinId('ic',ic.id,p));
+      if(el) el.style.background=(ic.ps[p]&&powered)?'#ff2222':'#9f9f9f';
+    }
+  });
+  drawWires();
+}
+
+function makePinStub(pid){
+  const el=document.createElement('div');
+  el.className='pin-stub ic-ps';
+  el.dataset.pid=pid;
+  el.addEventListener('mousedown',onPinMD);
+  el.addEventListener('mouseenter',()=>el.classList.add('hover'));
+  el.addEventListener('mouseleave',()=>el.classList.remove('hover'));
+  el.addEventListener('mouseup',onPinMU);
+  return el;
+}
+
+function onPinMD(e){
+  e.preventDefault(); e.stopPropagation();
+  if(isPanning||trimMode) return;
+  const pid=e.currentTarget.dataset.pid;
+  dragWire={from:pid,mx:0,my:0};
+  e.currentTarget.classList.add('dragging-src');
+  document.getElementById('statusBar').textContent='Dragging from '+pid+' — release on target pin';
+}
+
+function onPinMU(e){
+  if(!dragWire) return;
+  e.stopPropagation();
+  const tgt=e.currentTarget;
+  const srcEl=getPinEl(dragWire.from);
+  if(srcEl) srcEl.classList.remove('dragging-src');
+  const toPid=tgt.dataset.pid;
+  if(toPid && toPid!==dragWire.from){
+    const col=WIRE_COLORS[wColorIdx%WIRE_COLORS.length]; wColorIdx++;
+    const wire={from:dragWire.from,to:toPid,color:col};
+    wires.push(wire);
+    pushUndo({type:'addWire',wire,desc:'wire '+dragWire.from+' → '+toPid});
+    markConnected(); simulate(); renderLEDs();
+    document.getElementById('statusBar').textContent='Connected: '+dragWire.from+' → '+toPid;
+  }
+  dragWire=null; drawWires();
+}
+
+window.addEventListener('mouseup',e=>{
+  if(dragWire){
+    const srcEl=getPinEl(dragWire.from);
+    if(srcEl) srcEl.classList.remove('dragging-src');
+    dragWire=null; drawWires();
+    document.getElementById('statusBar').textContent='Drag from any pin to connect wires';
+  }
+});
+
+canvas.addEventListener('contextmenu',e=>{
+  if(trimMode){e.preventDefault();return;}
+  e.preventDefault();
+  const r=canvas.getBoundingClientRect();
+  const mx=e.clientX-r.left, my=e.clientY-r.top;
+  const hit=hitWire(mx,my);
+  if(hit>=0){
+    ctxWireIdx=hit;
+    const menu=document.getElementById('ctxMenu');
+    menu.style.display='block';
+    menu.style.left=(e.clientX+2)+'px';
+    menu.style.top=(e.clientY+2)+'px';
+  }
+});
+
+canvas.addEventListener('click',e=>{
+  if(!trimMode) return;
+  const r=canvas.getBoundingClientRect();
+  const hit=hitWire(e.clientX-r.left,e.clientY-r.top);
+  if(hit<0){
+    document.getElementById('statusBar').textContent='Trim mode ON - click directly on a wire to cut it';
+    return;
+  }
+  const removed=wires[hit];
+  wires.splice(hit,1);
+  pushUndo({type:'removeWire',wire:removed,desc:'trim wire'});
+  markConnected();
+  simulate();
+  renderLEDs();
+  drawWires();
+  document.getElementById('statusBar').textContent='Wire trimmed';
+});
+
+document.getElementById('ctxDelWire').onclick=()=>{
+  if(ctxWireIdx>=0){
+    const removed=wires[ctxWireIdx];
+    wires.splice(ctxWireIdx,1);
+    pushUndo({type:'removeWire',wire:removed,desc:'delete wire'});
+    ctxWireIdx=-1;markConnected();simulate();renderLEDs();
+  }
+  document.getElementById('ctxMenu').style.display='none';
+};
+document.getElementById('ctxCancel').onclick=()=>{document.getElementById('ctxMenu').style.display='none';};
+window.addEventListener('click',()=>{document.getElementById('ctxMenu').style.display='none';});
+
+function clearWires(){
+  if(wires.length) pushUndo({type:'clearWires',wires:[...wires],desc:'clear all wires'});
+  wires=[];markConnected();simulate();renderLEDs();drawWires();document.getElementById('statusBar').textContent='All wires cleared';
+}
+function clearAll(){
+  if(wires.length||ics.length) pushUndo({type:'clearAll',wires:[...wires],ics:[...ics],desc:'clear all'});
+  wires=[];ics=[];Object.keys(ffState).forEach(k=>delete ffState[k]);document.getElementById('icArea').innerHTML='';simulate();renderLEDs();
+}
+function togglePwr(){powered=!powered;document.getElementById('pwrBtn').classList.toggle('on',powered);simulate();renderLEDs();document.getElementById('statusBar').textContent=powered?'Power ON — circuit running':'Power OFF';}
+function toggleInput(i){inStates[i]=inStates[i]?0:1;simulate();renderLEDs();}
+
+function buildClkRow(){
+  const container=document.getElementById('clkPins');
+  container.innerHTML='';
+  container.style.cssText='display:flex;gap:10px;align-items:center;flex-wrap:wrap;';
+  for(let i=0;i<N_CLK;i++){
+    const col=document.createElement('div');col.className='clk-col';
+    const lbl=document.createElement('span');lbl.className='clk-lbl';lbl.textContent='CLK '+i;
+    const ind=document.createElement('div');ind.className='clk-indicator';ind.id=`clkind${i}`;
+    const stub=makePinStub(`CLK_${i}`);
+    stub.style.background='#2ecc71';
+    // Manual pulse button — press = HIGH, release = LOW
+    const pbtn=document.createElement('button');
+    pbtn.className='clk-pulse-btn';
+    pbtn.title=`Manual pulse CLK ${i}`;
+    pbtn.innerHTML='⚡';
+    // mousedown / touchstart → HIGH
+    const pressClk=()=>{
+      if(clkRunning) return; // don't interfere with auto-clock
+      clkStates[i]=1;
+      renderClkIndicators();
+      simulate(); renderLEDs();
+    };
+    // mouseup / mouseleave / touchend → LOW
+    const releaseClk=()=>{
+      if(clkRunning) return;
+      clkStates[i]=0;
+      renderClkIndicators();
+      simulate(); renderLEDs();
+    };
+    pbtn.addEventListener('mousedown', pressClk);
+    pbtn.addEventListener('mouseup',   releaseClk);
+    pbtn.addEventListener('mouseleave',releaseClk);
+    pbtn.addEventListener('touchstart', e=>{e.preventDefault();pressClk();});
+    pbtn.addEventListener('touchend',   e=>{e.preventDefault();releaseClk();});
+    col.appendChild(lbl);
+    col.appendChild(ind);
+    col.appendChild(stub);
+    col.appendChild(pbtn);
+    container.appendChild(col);
+  }
+}
+
+function renderClkIndicators(){
+  for(let i=0;i<N_CLK;i++){
+    const el=document.getElementById(`clkind${i}`);
+    if(el) el.classList.toggle('hi',!!clkStates[i]);
+  }
+}
+
+function getClkHz(){
+  const v=parseInt(document.getElementById('clkFreqSlider').value,10);
+  return CLK_FREQS[Math.min(v,CLK_FREQS.length-1)];
+}
+
+function updateClkLabel(){
+  const hz=getClkHz();
+  document.getElementById('clkFreqLabel').textContent=hz>=1000?(hz/1000)+'kHz':hz+' Hz';
+}
+
+function tickClock(){
+  // Rising edge: set CLK_0 HIGH (and propagate dividers on falling)
+  clkStates[0]=1;
+  renderClkIndicators();
+  simulate(); renderLEDs();
+  // Falling edge after a brief moment
+  setTimeout(()=>{
+    if(!clkRunning) return;
+    clkStates[0]=0;
+    // Ripple divider on falling edge of CLK_0
+    clkStates[1]=clkStates[1]?0:1;
+    if(clkStates[1]===0){
+      clkStates[2]=clkStates[2]?0:1;
+      if(clkStates[2]===0) clkStates[3]=clkStates[3]?0:1;
+    }
+    renderClkIndicators();
+    simulate(); renderLEDs();
+  }, Math.max(10, 500/getClkHz())); // half-period clamped to 10ms min Designed by VPM
+}
+
+function toggleClock(){
+  clkRunning=!clkRunning;
+  const btn=document.getElementById('clkRunBtn');
+  if(clkRunning){
+    const hz=getClkHz();
+    // interval fires at 2x freq (each tick = half-period = one edge) 
+    clkInterval=setInterval(tickClock,1000/(hz*2));
+    btn.textContent='⏹ Stop Auto';
+    btn.classList.add('running');
+    document.getElementById('statusBar').textContent='Auto-clock running at '+document.getElementById('clkFreqLabel').textContent+' — manual pulse disabled';
+  } else {
+    clearInterval(clkInterval);clkInterval=null;
+    clkStates=Array(N_CLK).fill(0);
+    renderClkIndicators();
+    simulate();renderLEDs();
+    btn.textContent='▶ Start Auto';
+    btn.classList.remove('running');
+    document.getElementById('statusBar').textContent='Auto-clock stopped — use ⚡ buttons for manual pulse';
+  }
+}
+
+document.getElementById('clkFreqSlider').addEventListener('input',()=>{
+  updateClkLabel();
+  if(clkRunning){
+    clearInterval(clkInterval);
+    const hz=getClkHz();
+    clkInterval=setInterval(tickClock,1000/(hz*2));
+    document.getElementById('statusBar').textContent='Clock: '+document.getElementById('clkFreqLabel').textContent;
+  }
+});
+
+function buildOutputRow(){
+  const row=document.getElementById('outRow'); row.innerHTML='';
+  for(let i=0;i<N_OUT;i++){
+    const col=document.createElement('div');col.className='pcol out-col';
+    const label=document.createElement('span');
+    label.className='pin-lbl';
+    label.textContent=i;
+    const bulbWrap=document.createElement('div');
+    bulbWrap.className='out-bulb-wrap';
+    const bulb=document.createElement('div');
+    bulb.className='out-bulb';
+    bulb.id=`obulb${i}`;
+    const base=document.createElement('div');
+    base.className='bulb-base';
+    const note=document.createElement('div');
+    note.className='out-note';
+    note.id=`onote${i}`;
+    note.textContent='OFF';
+    bulbWrap.appendChild(bulb);
+    bulbWrap.appendChild(base);
+    col.appendChild(label);
+    col.appendChild(bulbWrap);
+    col.appendChild(note);
+    col.appendChild(makePinStub(pinId('out',i,0)));
+    row.appendChild(col);
+  }
+  ['VCC','HIGH','LOW','GND'].forEach(t=>{
+    const col=document.createElement('div');col.className='pcol';
+    const colors={'VCC':'#f64','HIGH':'#f64','LOW':'#444','GND':'#333'};
+    const stub=makePinStub(t);
+    stub.style.background=colors[t]||'#9f9f9f';
+    col.innerHTML=`<span class="pin-lbl" style="color:${t==='VCC'||t==='HIGH'?'#f64':t==='GND'?'#aaa':'#ccc'}">${t}</span>`;
+    col.appendChild(stub);
+    row.appendChild(col);
+  });
+}
+
+function buildInputRow(){
+  const row=document.getElementById('inRow'); row.innerHTML='';
+  for(let i=0;i<N_IN;i++){
+    const col=document.createElement('div');col.className='pcol';
+    const stub=makePinStub(pinId('in',i,0));
+    const led=document.createElement('div');
+    led.className='led';
+    led.id=`iled${i}`;
+    const tog=document.createElement('button');
+    tog.className='toggle-sw'; tog.id=`itog${i}`;
+    tog.onclick=()=>toggleInput(i);
+    const label=document.createElement('span');
+    label.className='pin-lbl';
+    label.textContent=i;
+    col.appendChild(stub);
+    col.appendChild(led);
+    col.appendChild(tog);
+    col.appendChild(label);
+    row.appendChild(col);
+  }
+  ['GND','LOW','HIGH','VCC'].forEach(t=>{
+    const col=document.createElement('div');col.className='pcol';
+    const colors={'VCC':'#f64','HIGH':'#f64','LOW':'#444','GND':'#333'};
+    const stub=makePinStub(t);
+    stub.style.background=colors[t]||'#9f9f9f';
+    col.innerHTML=`<span class="pin-lbl" style="color:${t==='VCC'||t==='HIGH'?'#f64':'#aaa'}">${t}</span>`;
+    col.appendChild(stub);
+    row.appendChild(col);
+  });
+}
+
+function pushUndo(action){
+  undoStack.push(action);
+  if(undoStack.length>50) undoStack.shift();
+  updateUndoBtn();
+}
+function updateUndoBtn(){
+  const btn=document.getElementById('undoBtn');
+  if(btn){btn.disabled=undoStack.length===0;btn.style.opacity=undoStack.length===0?'0.4':'1';}
+}
+function undoAction(){
+  if(!undoStack.length) return;
+  const action=undoStack.pop();
+  if(action.type==='addWire'){
+    wires=wires.filter(w=>w!==action.wire);
+  } else if(action.type==='removeWire'){
+    wires.push(action.wire);
+  } else if(action.type==='addIC'){
+    const el=document.getElementById(`icw${action.ic.id}`);
+    if(el) el.remove();
+    ics=ics.filter(x=>x.id!==action.ic.id);
+    wires=wires.filter(w=>!w.from.startsWith(`IC_${action.ic.id}_`)&&!w.to.startsWith(`IC_${action.ic.id}_`));
+  } else if(action.type==='removeIC'){
+    ics.push(action.ic);
+    action.removedWires.forEach(w=>wires.push(w));
+    buildIC(action.ic);
+  } else if(action.type==='clearWires'){
+    wires=action.wires;
+  } else if(action.type==='clearAll'){
+    wires=action.wires;
+    ics=action.ics;
+    ics.forEach(ic=>buildIC(ic));
+  }
+  markConnected(); simulate(); renderLEDs(); drawWires();
+  updateUndoBtn();
+  document.getElementById('statusBar').textContent='Undo: '+action.desc;
+}
+// Ctrl+Z shortcut
+window.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key==='z'){e.preventDefault();undoAction();}});
+
+function addIC(){
+  const type=document.getElementById('icSel').value;
+  const def=IC_DEFS[type];
+  icCnt++;
+  const ic={id:icCnt,type,def,ps:{}};
+  ics.push(ic);
+  buildIC(ic);
+  pushUndo({type:'addIC',ic,desc:'add '+def.name});
+  simulate(); renderLEDs();
+  document.getElementById('statusBar').textContent='Added '+def.name;
+}
+
+function buildIC(ic){
+  const area=document.getElementById('icArea');
+  const def=ic.def; const n=def.pins; const half=n/2;
+  const wrap=document.createElement('div'); wrap.className='ic-wrap'; wrap.id=`icw${ic.id}`;
+  const del=document.createElement('button'); del.className='ic-del'; del.textContent='×';
+  del.title='Remove IC';
+  del.onclick=()=>{
+    const removedWires=wires.filter(w=>w.from.startsWith(`IC_${ic.id}_`)||w.to.startsWith(`IC_${ic.id}_`));
+    wires=wires.filter(w=>!w.from.startsWith(`IC_${ic.id}_`)&&!w.to.startsWith(`IC_${ic.id}_`));
+    ics=ics.filter(x=>x.id!==ic.id);
+    document.getElementById(`icw${ic.id}`).remove();
+    // Clear flip-flop state for this IC
+    Object.keys(ffState).filter(k=>k.startsWith(ic.id+'_')).forEach(k=>delete ffState[k]);
+    pushUndo({type:'removeIC',ic,removedWires,desc:'remove '+ic.def.name});
+    markConnected(); simulate(); renderLEDs(); drawWires();
+  };
+  wrap.appendChild(del);
+  const notch=document.createElement('div'); notch.className='ic-notch'; wrap.appendChild(notch);
+  const chip=document.createElement('div'); chip.className='ic-chip';
+  const colL=document.createElement('div'); colL.className='ic-col-l';
+  const colR=document.createElement('div'); colR.className='ic-col-r';
+  const sL=document.createElement('div'); sL.className='ic-sidebar';
+  const sR=document.createElement('div'); sR.className='ic-sidebar';
+  const body=document.createElement('div'); body.className='ic-body';
+  const lbl=document.createElement('div'); lbl.className='ic-lbl'; lbl.textContent=def.name;
+  body.appendChild(lbl);
+  for(let i=0;i<half;i++){
+    const pL=i+1, pR=n-i;
+    sL.innerHTML+=`<div class="h"></div>`;
+    sR.innerHTML+=`<div class="h"></div>`;
+    const rL=document.createElement('div'); rL.className='ic-pin-row';
+    const nL=document.createElement('span'); nL.className='pn'; nL.textContent=pL;
+    rL.appendChild(nL); rL.appendChild(makePinStub(pinId('ic',ic.id,pL)));
+    colL.appendChild(rL);
+    const rR=document.createElement('div'); rR.className='ic-pin-row r';
+    const nR=document.createElement('span'); nR.className='pn r'; nR.textContent=pR;
+    rR.appendChild(nR); rR.appendChild(makePinStub(pinId('ic',ic.id,pR)));
+    colR.appendChild(rR);
+  }
+  chip.appendChild(colL); chip.appendChild(sL); chip.appendChild(body); chip.appendChild(sR); chip.appendChild(colR);
+  wrap.appendChild(chip); area.appendChild(wrap);
+}
+
+
+
+
+window.addEventListener('resize',()=>{resizeCanvas();drawWires();});
+buildOutputRow();
+buildInputRow();
+buildClkRow();
+updateClkLabel();
+applyTransform();
+updateTrimUi();
+updateUndoBtn();
+setTimeout(()=>{resizeCanvas();drawWires();},100);
+
+</script>
+<footer id="footer-copyright" class="footer-copyright">
+  <div class="container">
+      <div class="hm-footer-copyright text-center">
+          <p>
+            <h2>  &copy;Copyright Vishal Malage.</h2><h4> Design and Developed by <a href="https://github.com/vishalmalage07">Vishal Malage</a></h4>
+          </p>
+          <h4 align="center"></h4>
+<p><a href="https://www.buymeacoffee.com/vishal_malage"> <img align="left" src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" height="25" width="110" alt="vishal_malage" /></a></p><br><br><br>
+
+</body>
+</html><!--Don't Copy My Code Without my permission At least Click on buy me a coffee and donate Money.That's all Thank you -->
