@@ -22,7 +22,7 @@
 
 ---
 
-# ⚡ Digital IC Trainer Kit 2.0
+# ⚡ Digital IC Trainer Kit
 
 > **Bridging the Education Gap — A Free Virtual Laboratory for Every Student & College**
 
